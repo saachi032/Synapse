@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { extractPdfText, cleanPdfText, chunkText } from "@/lib/pdf";
-import { embedChunks, createSession } from "@/lib/embeddings";
+import { createSession } from "@/lib/embeddings";
 
 export const runtime = "nodejs";
 
@@ -33,14 +33,18 @@ export async function POST(req: NextRequest) {
 
     const cleaned = cleanPdfText(rawText);
     const chunks = chunkText(cleaned);
-
-    const embeddings = await embedChunks(chunks);
+    if (!chunks.length) {
+      return NextResponse.json(
+        { error: "We couldn't extract enough readable text from that PDF." },
+        { status: 400 },
+      );
+    }
 
     const sessionId = randomUUID();
     const session = createSession({
       id: sessionId,
       filename: file.name,
-      chunks: embeddings,
+      chunks,
     });
 
     return NextResponse.json({
@@ -72,4 +76,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-

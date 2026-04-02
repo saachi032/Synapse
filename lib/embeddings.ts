@@ -57,10 +57,14 @@ export async function embedChunks(chunks: string[]): Promise<ChunkEmbedding[]> {
 export function createSession(input: {
   id: string;
   filename: string;
-  chunks: ChunkEmbedding[];
+  chunks: ChunkEmbedding[] | string[];
 }): StudySession {
   const session: StudySession = {
-    ...input,
+    id: input.id,
+    filename: input.filename,
+    chunks: input.chunks.map((chunk) =>
+      typeof chunk === "string" ? { chunk, vector: [] } : chunk,
+    ),
     createdAt: Date.now(),
   };
   sessions.set(session.id, session);
@@ -69,6 +73,21 @@ export function createSession(input: {
 
 export function getSession(id: string): StudySession | undefined {
   return sessions.get(id);
+}
+
+export async function ensureSessionEmbeddings(
+  session: StudySession,
+): Promise<StudySession> {
+  if (session.chunks.every((chunk) => chunk.vector.length > 0)) {
+    return session;
+  }
+
+  const embeddedChunks = await embedChunks(
+    session.chunks.map((chunk) => chunk.chunk),
+  );
+  session.chunks = embeddedChunks;
+  sessions.set(session.id, session);
+  return session;
 }
 
 export function getTopRelevantChunks(
@@ -86,4 +105,3 @@ export function getTopRelevantChunks(
     .slice(0, topK)
     .map((s) => s.chunk);
 }
-

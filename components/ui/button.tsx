@@ -9,12 +9,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-r from-[#7C3AED] to-[#FF81FF] text-primary-foreground shadow-[0_0_25px_rgba(124,58,237,0.35)] hover:shadow-[0_0_35px_rgba(124,58,237,0.55)] hover:-translate-y-[2px] active:scale-[0.96]",
+          "bg-[linear-gradient(135deg,#f9f6fa_0%,#dcccf7_48%,#af98e4_100%)] text-[#1b1026] shadow-[0_18px_42px_rgba(70,50,201,0.3)] hover:-translate-y-[2px] hover:shadow-[0_24px_56px_rgba(70,50,201,0.38)] active:scale-[0.98]",
         outline:
-          "border border-[rgba(255,255,255,0.12)] bg-transparent text-foreground hover:bg-white/5",
-        ghost: "bg-transparent text-muted-foreground hover:bg-white/5",
+          "border border-[rgba(249,246,250,0.16)] bg-[rgba(249,246,250,0.04)] text-foreground hover:bg-white/10",
+        ghost: "bg-transparent text-muted-foreground hover:bg-white/10",
         secondary:
-          "border border-[rgba(255,255,255,0.08)] bg-[rgba(17,17,24,0.6)] text-foreground hover:bg-white/5",
+          "border border-[rgba(249,246,250,0.08)] bg-[rgba(249,246,250,0.06)] text-foreground hover:bg-white/10",
         destructive:
           "bg-[#ef4444] text-destructive-foreground hover:bg-[#f97373]",
       },
@@ -53,4 +53,3 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
-

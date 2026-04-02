@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Syne } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,9 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const syne = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "StudyGuide AI",
-  description: "AI-powered study assistant for your PDFs.",
+  title: "Synapse",
+  description: "AI-powered study workspace for your PDFs.",
 };
 
 export default function RootLayout({
@@ -25,11 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${syne.variable} min-h-screen bg-background font-sans text-foreground antialiased`}
       >
         {children}
       </body>
     </html>
   );
 }
-

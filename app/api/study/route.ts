@@ -1,6 +1,15 @@
 import { NextRequest } from "next/server";
-import { getStudyModel, getEmbeddingModel, StudyMode } from "@/lib/gemini";
-import { getSession, getTopRelevantChunks } from "@/lib/embeddings";
+import {
+  getStudyModel,
+  getEmbeddingModel,
+  normalizeGeminiError,
+  StudyMode,
+} from "@/lib/gemini";
+import {
+  ensureSessionEmbeddings,
+  getSession,
+  getTopRelevantChunks,
+} from "@/lib/embeddings";
 
 export const runtime = "nodejs";
 
@@ -142,6 +151,7 @@ export async function POST(req: NextRequest) {
 
     let contextChunks: string[];
     if (body.mode === "qa" && body.question) {
+      await ensureSessionEmbeddings(session);
       const embeddingModel = getEmbeddingModel();
       const embeddingResult = await embeddingModel.embedContent({
         content: { role: "user", parts: [{ text: body.question }] },
@@ -156,29 +166,12 @@ export async function POST(req: NextRequest) {
     const prompt = buildSystemPrompt(body, context);
 
     const model = getStudyModel();
-    const streamingResp = await model.generateContentStream({
+    const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
     });
+    const text = result.response.text();
 
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of streamingResp.stream) {
-            const text = chunk.text();
-            if (text) {
-              controller.enqueue(encoder.encode(text));
-            }
-          }
-          controller.close();
-        } catch (err) {
-          console.error("Streaming error", err);
-          controller.error(err);
-        }
-      },
-    });
-
-    return new Response(stream, {
+    return new Response(text, {
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
@@ -186,10 +179,13 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Study error", error);
+    const normalized = normalizeGeminiError(error);
     return new Response(
-      JSON.stringify({ error: "Failed to generate AI response." }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      JSON.stringify({ error: normalized.message }),
+      {
+        status: normalized.status,
+        headers: { "Content-Type": "application/json" },
+      },
     );
   }
 }
-

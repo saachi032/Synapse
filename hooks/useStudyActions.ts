@@ -18,6 +18,23 @@ type CallOptions = {
   explanationMode?: "simple" | "exam" | "technical";
 };
 
+function asArray<T>(value: unknown, keys: string[] = []): T[] {
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
+
+  if (value && typeof value === "object") {
+    for (const key of keys) {
+      const nested = (value as Record<string, unknown>)[key];
+      if (Array.isArray(nested)) {
+        return nested as T[];
+      }
+    }
+  }
+
+  return [];
+}
+
 export function useStudyActions() {
   const {
     sessionId,
@@ -137,13 +154,13 @@ export function useStudyActions() {
           setSummary(json);
           break;
         case "flashcards":
-          setFlashcards(json);
+          setFlashcards(asArray(json, ["flashcards", "cards", "items"]));
           break;
         case "quiz":
-          setQuiz(json);
+          setQuiz(asArray(json, ["quiz", "questions", "items"]));
           break;
         case "topics":
-          setTopics(json);
+          setTopics(asArray(json, ["topics", "items"]));
           break;
         case "explanation":
           setExplanation(json);
@@ -152,12 +169,12 @@ export function useStudyActions() {
           addQA(json);
           break;
         case "resources":
-          setResources(json);
+          setResources(asArray(json, ["resources", "items", "links"]));
           break;
       }
     } catch (err) {
       console.error(err);
-      setError("Failed to get AI response.");
+      setError(err instanceof Error ? err.message : "Failed to get AI response.");
     } finally {
       setLoading(false);
     }

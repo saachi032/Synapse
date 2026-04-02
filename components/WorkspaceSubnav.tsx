@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -17,10 +18,23 @@ const links = [
 
 export function WorkspaceSubnav() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
-  return (
-    <nav className="border-b border-white/10 bg-[#06060c]/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-6 py-3">
+  const navContent = (
+    <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(249,246,250,0.08),rgba(249,246,250,0.03))] p-4 shadow-[0_28px_70px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+      <div className="border-b border-white/10 px-2 pb-4">
+        <p className="text-xs uppercase tracking-[0.24em] text-[#ccb9df]">
+          Workspace
+        </p>
+        <p className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+          Synapse
+        </p>
+        <p className="mt-2 text-sm leading-6 text-[#d1c3e3]">
+          Jump between study modes without hunting for the workspace section.
+        </p>
+      </div>
+
+      <div className="mt-4 space-y-2">
         {links.map((item) => {
           const isHub = "exact" in item && item.exact;
           const active = isHub
@@ -33,18 +47,55 @@ export function WorkspaceSubnav() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => setIsOpen(false)}
               className={cn(
-                "rounded-full px-4 py-2 text-sm font-medium transition",
+                "flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition",
                 active
-                  ? "bg-purple-500 text-white shadow-md shadow-purple-500/25"
-                  : "bg-white/10 text-gray-200 hover:bg-white/15 hover:text-white",
+                  ? "bg-[linear-gradient(135deg,#f9f6fa_0%,#dbc9f3_42%,#af98e4_100%)] text-[#1b1026] shadow-[0_16px_36px_rgba(70,50,201,0.24)]"
+                  : "bg-[rgba(249,246,250,0.04)] text-[#e8ddf3] hover:bg-[rgba(249,246,250,0.1)] hover:text-white",
               )}
             >
-              {label}
+              <span>{label}</span>
+              <span className={cn("text-xs", active ? "text-[#513764]" : "text-[#c8b7da]")}>
+                {"0" + (links.indexOf(item) + 1)}
+              </span>
             </Link>
           );
         })}
       </div>
-    </nav>
+    </div>
+  );
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setIsOpen((open) => !open)}
+        className="fixed left-4 top-24 z-40 inline-flex items-center gap-2 rounded-full border border-white/10 bg-[rgba(7,3,12,0.88)] px-4 py-2 text-sm font-medium text-white shadow-lg backdrop-blur-xl lg:hidden"
+      >
+        <span className="space-y-1">
+          <span className="block h-0.5 w-4 rounded-full bg-white" />
+          <span className="block h-0.5 w-4 rounded-full bg-white" />
+          <span className="block h-0.5 w-4 rounded-full bg-white" />
+        </span>
+        Menu
+      </button>
+
+      <aside className="hidden w-72 shrink-0 lg:block">{navContent}</aside>
+
+      {isOpen ? (
+        <div className="fixed inset-0 z-30 bg-[rgba(4,2,7,0.68)] backdrop-blur-sm lg:hidden">
+          <button
+            type="button"
+            aria-label="Close workspace menu"
+            className="absolute inset-0"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute left-4 top-24 bottom-4 z-10 w-[min(78vw,320px)]">
+            {navContent}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
