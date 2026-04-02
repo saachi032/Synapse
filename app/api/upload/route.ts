@@ -14,7 +14,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No PDF file provided." }, { status: 400 });
     }
 
-    if (file.type !== "application/pdf") {
+    const nameOk = file.name.toLowerCase().endsWith(".pdf");
+    const mimeOk =
+      file.type === "application/pdf" ||
+      file.type === "application/x-pdf" ||
+      file.type === "binary/octet-stream";
+    if (!mimeOk && !nameOk) {
       return NextResponse.json({ error: "Only PDF files are supported." }, { status: 400 });
     }
 
@@ -45,8 +50,24 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Upload error", error);
+    const msg =
+      error instanceof Error ? error.message : String(error);
+    if (msg.includes("GEMINI_API_KEY")) {
+      return NextResponse.json(
+        {
+          error:
+            "Server is missing GEMINI_API_KEY. Add it to .env.local and restart the dev server.",
+        },
+        { status: 500 },
+      );
+    }
     return NextResponse.json(
-      { error: "Failed to process PDF. Please try another file." },
+      {
+        error:
+          msg.length && msg.length < 200
+            ? msg
+            : "Failed to process PDF. Please try another file.",
+      },
       { status: 500 },
     );
   }

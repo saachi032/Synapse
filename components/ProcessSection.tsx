@@ -32,7 +32,7 @@ export function ProcessSection() {
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-gray-500">
           From concept to retention
         </p>
-        <h2 className="text-3xl font-semibold text-white">
+        <h2 className="max-w-3xl text-3xl font-semibold tracking-tight text-white md:text-4xl">
           A calm pipeline from upload to understanding
         </h2>
       </div>
@@ -56,7 +56,7 @@ export function ProcessSection() {
               <h3 className="text-sm font-semibold text-white">
                 {step.title}
               </h3>
-              <p className="text-[11px] leading-relaxed text-gray-400">
+              <p className="text-sm leading-relaxed text-gray-400">
                 {step.body}
               </p>
             </div>

@@ -1,11 +1,13 @@
-import * as pdfParse from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 
 export async function extractPdfText(fileBuffer: Buffer): Promise<string> {
-  // pdf-parse's module shape varies between CJS/ESM builds; cast to call safely.
-  const data = await (pdfParse as unknown as (buf: Buffer) => Promise<{ text: string }>)(
-    fileBuffer,
-  );
-  return data.text;
+  const parser = new PDFParse({ data: new Uint8Array(fileBuffer) });
+  try {
+    const result = await parser.getText();
+    return result.text ?? "";
+  } finally {
+    await parser.destroy();
+  }
 }
 
 export function cleanPdfText(raw: string): string {
@@ -45,4 +47,3 @@ export function chunkText(text: string, maxChars = 2000): string[] {
 
   return chunks;
 }
-

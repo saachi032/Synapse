@@ -28,19 +28,30 @@ export function cosineSimilarity(a: number[], b: number[]): number {
   return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
+const EMBED_BATCH = 100;
+
 export async function embedChunks(chunks: string[]): Promise<ChunkEmbedding[]> {
   const model = getEmbeddingModel();
-  const result = await model.batchEmbedContents({
-    requests: chunks.map((chunk) => ({
-      content: { role: "user", parts: [{ text: chunk }] },
-    })),
-  });
+  const out: ChunkEmbedding[] = [];
 
-  const embeddings = result.embeddings ?? [];
-  return chunks.map((chunk, idx) => ({
-    chunk,
-    vector: embeddings[idx]?.values ?? [],
-  }));
+  for (let i = 0; i < chunks.length; i += EMBED_BATCH) {
+    const slice = chunks.slice(i, i + EMBED_BATCH);
+    const result = await model.batchEmbedContents({
+      requests: slice.map((chunk) => ({
+        content: { role: "user", parts: [{ text: chunk }] },
+      })),
+    });
+
+    const embeddings = result.embeddings ?? [];
+    for (let j = 0; j < slice.length; j++) {
+      out.push({
+        chunk: slice[j],
+        vector: embeddings[j]?.values ?? [],
+      });
+    }
+  }
+
+  return out;
 }
 
 export function createSession(input: {

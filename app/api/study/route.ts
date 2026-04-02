@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { getStudyModel, getEmbeddingModel, StudyMode } from "@/lib/gemini";
 import { getSession, getTopRelevantChunks } from "@/lib/embeddings";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type StudyRequest = {
   sessionId: string;
