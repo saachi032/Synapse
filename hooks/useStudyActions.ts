@@ -16,6 +16,7 @@ type CallOptions = {
   question?: string;
   summaryLevel?: "short" | "medium" | "detailed";
   explanationMode?: "simple" | "exam" | "technical";
+  flashcardCount?: number;
 };
 
 function asArray<T>(value: unknown, keys: string[] = []): T[] {
@@ -113,6 +114,7 @@ export function useStudyActions() {
         mode: ApiMode;
         summaryLevel?: "short" | "medium" | "detailed";
         explanationMode?: "simple" | "exam" | "technical";
+        flashcardCount?: number;
         question?: string;
       } = { sessionId, mode };
 
@@ -124,6 +126,9 @@ export function useStudyActions() {
       }
       if (mode === "qa" && options.question) {
         body.question = options.question;
+      }
+      if (mode === "flashcards") {
+        body.flashcardCount = options.flashcardCount ?? 10;
       }
 
       const res = await fetch("/api/study", {

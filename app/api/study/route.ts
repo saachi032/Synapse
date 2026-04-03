@@ -18,6 +18,7 @@ type StudyRequest = {
   mode: StudyMode;
   summaryLevel?: "short" | "medium" | "detailed";
   explanationMode?: "simple" | "exam" | "technical";
+  flashcardCount?: number;
   question?: string;
 };
 
@@ -42,6 +43,7 @@ ${context}
     case "flashcards":
       return `
 You are an AI creating high-quality flashcards from study material.
+Generate exactly ${body.flashcardCount ?? 10} flashcards.
 Return STRICT JSON array only, like:
 [
   { "question": "...", "answer": "..." }

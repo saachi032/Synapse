@@ -76,6 +76,7 @@ export function SummaryWorkspacePanel() {
 export function FlashcardsWorkspacePanel() {
   const { flashcards, isLoading } = useStudyStore();
   const { callStudyApi } = useStudyActions();
+  const [flashcardCount, setFlashcardCount] = useState(10);
 
   return (
     <motion.section
@@ -86,23 +87,43 @@ export function FlashcardsWorkspacePanel() {
       <div className={`flex flex-col gap-4 md:flex-row md:items-center md:justify-between ${shell}`}>
         <div>
           <h1 className={title}>Flashcards</h1>
-          <p className={`mt-1 max-w-xl ${desc}`}>Tap a card to flip.</p>
+          <p className={`mt-1 max-w-xl ${desc}`}>
+            Tap a card to flip and choose how many to generate.
+          </p>
         </div>
-        <Button
-          disabled={isLoading}
-          onClick={() => callStudyApi("flashcards")}
-          className="rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 px-5 py-2.5 text-sm transition hover:scale-105"
-        >
-          {isLoading ? "Generating…" : "Generate deck"}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={flashcardCount}
+            onChange={(e) => setFlashcardCount(Number(e.target.value))}
+            className="h-11 rounded-full border border-white/15 bg-black/40 px-4 text-sm text-gray-100 outline-none"
+          >
+            {[5, 10, 15, 20, 25].map((count) => (
+              <option key={count} value={count}>
+                {count} cards
+              </option>
+            ))}
+          </select>
+          <Button
+            disabled={isLoading}
+            onClick={() => callStudyApi("flashcards", { flashcardCount })}
+            className="rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 px-5 py-2.5 text-sm transition hover:scale-105"
+          >
+            {isLoading ? "Generating…" : "Generate deck"}
+          </Button>
+        </div>
       </div>
       {!flashcards.length ? (
         <p className={desc}>No flashcards yet.</p>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-400">
+            Showing {flashcards.length} flashcards
+          </p>
+          <div className="grid gap-6 md:grid-cols-2">
           {flashcards.map((card, idx) => (
             <FlashcardTile key={idx} card={card} />
           ))}
+          </div>
         </div>
       )}
     </motion.section>
