@@ -40,6 +40,14 @@ async function readErrorMessage(res: Response): Promise<string> {
     }
   }
 
+  if (bodyText.includes("<!DOCTYPE html") || bodyText.includes("__next_error__")) {
+    if (res.status >= 500) {
+      return "The deployed app returned an HTML error page instead of API JSON. This usually means the server crashed or the platform rejected the request.";
+    }
+
+    return "The server returned an HTML page instead of an API response.";
+  }
+
   if (bodyText.trim()) {
     return bodyText.slice(0, 200);
   }
@@ -178,8 +186,7 @@ export function useStudyActions() {
       });
 
       if (!res.ok || !res.body) {
-        const json = await res.json().catch(() => ({}));
-        throw new Error(json.error || "Request failed.");
+        throw new Error(await readErrorMessage(res));
       }
 
       const reader = res.body.getReader();
@@ -192,11 +199,23 @@ export function useStudyActions() {
       }
       fullText += decoder.decode();
 
-      const json = JSON.parse(fullText);
+      let json: unknown;
+
+      try {
+        json = JSON.parse(fullText);
+      } catch {
+        if (fullText.includes("<!DOCTYPE html") || fullText.includes("__next_error__")) {
+          throw new Error(
+            "The deployed app returned an HTML error page instead of API JSON.",
+          );
+        }
+
+        throw new Error("The server returned an unreadable response.");
+      }
 
       switch (mode) {
         case "summary":
-          setSummary(json);
+          setSummary(json as Parameters<typeof setSummary>[0]);
           break;
         case "flashcards":
           setFlashcards(asArray(json, ["flashcards", "cards", "items"]));
@@ -208,10 +227,10 @@ export function useStudyActions() {
           setTopics(asArray(json, ["topics", "items"]));
           break;
         case "explanation":
-          setExplanation(json);
+          setExplanation(json as Parameters<typeof setExplanation>[0]);
           break;
         case "qa":
-          addQA(json);
+          addQA(json as Parameters<typeof addQA>[0]);
           break;
         case "resources":
           setResources(asArray(json, ["resources", "items", "links"]));
