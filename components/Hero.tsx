@@ -89,6 +89,10 @@ export function Hero({
             ) : null}
           </motion.div>
 
+          <p className="text-sm text-[#cdbedf]">
+            Deployed uploads currently work best with text-based PDFs under 4 MB.
+          </p>
+
           {filename ? (
             <motion.div
               initial={{ opacity: 0, y: 18 }}

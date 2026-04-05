@@ -19,6 +19,34 @@ type CallOptions = {
   flashcardCount?: number;
 };
 
+const DEPLOYED_UPLOAD_LIMIT_BYTES = 4 * 1024 * 1024;
+
+async function readErrorMessage(res: Response): Promise<string> {
+  if (res.status === 413) {
+    return "This PDF is too large for the deployed upload limit. Keep it under 4 MB, or switch to direct storage uploads for larger files.";
+  }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  const bodyText = await res.text().catch(() => "");
+
+  if (contentType.includes("application/json") && bodyText) {
+    try {
+      const json = JSON.parse(bodyText) as { error?: string };
+      if (json.error) {
+        return json.error;
+      }
+    } catch {
+      return "The server returned an unreadable error response.";
+    }
+  }
+
+  if (bodyText.trim()) {
+    return bodyText.slice(0, 200);
+  }
+
+  return "Request failed.";
+}
+
 function asArray<T>(value: unknown, keys: string[] = []): T[] {
   if (Array.isArray(value)) {
     return value as T[];
@@ -67,6 +95,14 @@ export function useStudyActions() {
       return;
     }
 
+    if (file.size > DEPLOYED_UPLOAD_LIMIT_BYTES) {
+      setError(
+        "This PDF is too large for the deployed app upload limit. Please use a file under 4 MB.",
+      );
+      e.target.value = "";
+      return;
+    }
+
     setError(undefined);
     setUploading(true);
     try {
@@ -78,12 +114,16 @@ export function useStudyActions() {
         body: formData,
       });
 
-      const json = await res.json();
-
       if (!res.ok) {
-        setError(json.error || "Upload failed.");
+        setError(await readErrorMessage(res));
         return;
       }
+
+      const json = (await res.json()) as {
+        sessionId: string;
+        filename: string;
+        chunkCount: number;
+      };
 
       setSession({
         sessionId: json.sessionId,
