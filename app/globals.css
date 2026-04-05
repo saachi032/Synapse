@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 :root {
+  --font-geist-sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-geist-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+  --font-syne: "Avenir Next", "Trebuchet MS", "Gill Sans", sans-serif;
   --background: #05020a;
   --foreground: #f9f6fa;
   --card: rgba(249, 246, 250, 0.08);

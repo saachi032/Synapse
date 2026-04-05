@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import AnimatedGlowingSearchBar from "@/components/ui/animated-glowing-search-bar";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -19,6 +20,20 @@ const links = [
 export function WorkspaceSubnav() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filteredLinks = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return links;
+    }
+
+    return links.filter((item) => {
+      const label = "labelHome" in item ? item.labelHome : item.label;
+      return label.toLowerCase().includes(normalizedQuery);
+    });
+  }, [query]);
 
   const navContent = (
     <div className="flex h-full flex-col rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(249,246,250,0.08),rgba(249,246,250,0.03))] p-4 shadow-[0_28px_70px_rgba(0,0,0,0.24)] backdrop-blur-xl">
@@ -34,8 +49,16 @@ export function WorkspaceSubnav() {
         </p>
       </div>
 
+      <div className="mt-4 px-1">
+        <AnimatedGlowingSearchBar
+          value={query}
+          onChange={setQuery}
+          className="origin-top-left scale-[0.85]"
+        />
+      </div>
+
       <div className="mt-4 space-y-2">
-        {links.map((item) => {
+        {filteredLinks.map((item) => {
           const isHub = "exact" in item && item.exact;
           const active = isHub
             ? pathname === "/workspace"
@@ -56,12 +79,20 @@ export function WorkspaceSubnav() {
               )}
             >
               <span>{label}</span>
-              <span className={cn("text-xs", active ? "text-[#513764]" : "text-[#c8b7da]")}>
+              <span
+                className={cn("text-xs", active ? "text-[#513764]" : "text-[#c8b7da]")}
+              >
                 {"0" + (links.indexOf(item) + 1)}
               </span>
             </Link>
           );
         })}
+
+        {filteredLinks.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-[rgba(249,246,250,0.04)] px-4 py-4 text-sm leading-6 text-[#d1c3e3]">
+            No study modes match that search yet.
+          </div>
+        ) : null}
       </div>
     </div>
   );
